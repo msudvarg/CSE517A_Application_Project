@@ -10,8 +10,8 @@ textData = Data.text;
 labels = Data.user; 
 
 %Removes punctuation and make lowercase
-cleanTextData = erasePunctuation(textData);
-cleanTextData = lower(cleanTextData);
+%cleanTextData = erasePunctuation(textData);
+cleanTextData = lower(textData);
 cleanTextData = regexprep(cleanTextData, 'http.+', ' ');
 
 %Tokenize documents
@@ -51,8 +51,18 @@ k = 10;
 aucTotal = 0;
 errTreeTotal = 0;
 
+s = RandStream('mt19937ar','Seed',2018);
+ii=randperm(s,length(Y));
+X=X(:,ii);
+Y=Y(1,ii);
+[d,n]=size(X);
+
 for i = 1:k
-    valsplit;
+    [itr,ite] = valsplit(n,k,i);
+    xTr=X(:,itr);
+    yTr=Y(itr);
+    xTv=X(:,ite);
+    yTv=Y(ite);
     
     %Train linear model using ridge regression
     traintwitter(xTr,yTr);
