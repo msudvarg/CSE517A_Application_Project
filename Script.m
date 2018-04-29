@@ -1,4 +1,4 @@
-results = zeros(10,4);
+results = zeros(10,5);
 
 %% Pre-Process data 
 
@@ -49,7 +49,7 @@ Y(Y==2) = 1;
 Y = Y';
 X = tfidfBag';
 
-%% 
+%% Gaussian Process Model
 GP_Control
 
 %% Preprocessing experiment for removal of words appearing 2 to 20 or fewer times
@@ -128,10 +128,14 @@ for freq_threshold = 2:2:20
 
 
     %% PCA
-    warning('off','all');
-    [coeff, score, latent, tsquared, explained] = pca(full(X));
-    warning('on','all');
-
+    tic
+        for i=1:10
+        warning('off','all');
+        [coeff, score, latent, tsquared, explained] = pca(full(X));
+        warning('on','all');
+        end
+    pcatime = toc/10;
+    
     %%
     x = 1:length(latent);
 
@@ -154,7 +158,7 @@ for freq_threshold = 2:2:20
     per90 = sum(e<90)
     pcacount(1,2) = per90;
     
-    results(freq_threshold/2, :) = [ size(X,1) (sum(latent > (latent(1)/10))) (sum(e<90)) Linear_AUC];
+    results(freq_threshold/2, :) = [ size(X,1) (sum(latent > (latent(1)/10))) (sum(e<90)) Linear_AUC pcatime];
     
     %%
     for c = pcacount
@@ -202,3 +206,15 @@ for freq_threshold = 2:2:20
         toc
     end
 end
+
+%% PCA Runtime Analysis
+
+    figure();
+    plot(results(:,1),results(:,5));
+    t = (results(:,1).^2*6439 + results(:,1).^3)*3*10^-10;
+    hold on;
+    plot(results(:,1),t);
+    title('PCA Runtime');
+    xlabel('Dataset Dimensionality');
+    ylabel('PCA Runtime (s)');
+    legend('Mean Runtime','Theoretical Runtime');
