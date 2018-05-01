@@ -1,4 +1,5 @@
 results = zeros(10,5);
+results2 = zeros(10,11);
 
 %% Pre-Process data 
 
@@ -50,11 +51,15 @@ Y = Y';
 X = tfidfBag';
 
 %% Gaussian Process Model
-GP_Control
+%GP_Control
+
+%% Running 10 times
+
+for run = 1:10
 
 %% Preprocessing experiment for removal of words appearing 2 to 20 or fewer times
 
-for freq_threshold = 2:2:20
+for freq_threshold = 10 %2:2:20  change for 10 runs
 
     %Create Bag-of-Words
     cleanBag = bagOfWords(cleanDocuments);
@@ -79,7 +84,7 @@ for freq_threshold = 2:2:20
     aucTotal = 0;
     errTreeTotal = 0;
 
-    s = RandStream('mt19937ar','Seed',2018);
+    s = RandStream('mt19937ar','Seed',run*2018);
     ii=randperm(s,length(Y));
     X=X(:,ii);
     Y=Y(1,ii);
@@ -99,8 +104,8 @@ for freq_threshold = 2:2:20
         aucTotal = aucTotal + auc;
 
     end
-    Linear_AUC = aucTotal/k
-    toc
+    Linear_AUC = aucTotal/k;
+    lineartime = toc;
 
     %% Decision tree
     tic
@@ -123,33 +128,33 @@ for freq_threshold = 2:2:20
         errTreeTotal = errTreeTotal + errTree;
 
     end
-    Decision_Tree_Error = errTreeTotal/k
-    toc
+    Decision_Tree_Error = errTreeTotal/k;
+    dttime = toc;
 
 
     %% PCA
     tic
-        for i=1:10
+    %for i=1:10  change for 10 runs
         warning('off','all');
         [coeff, score, latent, tsquared, explained] = pca(full(X));
         warning('on','all');
-        end
-    pcatime = toc/10;
+    %end  change for 10 runs
+    pcatime = toc;%/10;  change for 10 runs
     
     %%
     x = 1:length(latent);
 
-    figure();
-    plot(x,latent);
-    title('PCA Variances');
-    xlabel('Principal Component');
-    ylabel('Eigenvalue');
-
-    figure();
-    plot(x,cumsum(explained));
-    title('Cumulative Variance by Principal Component');
-    xlabel('Principal Component');
-    ylabel('Cumulative Variance (%)');
+%     figure();
+%     plot(x,latent);
+%     title('PCA Variances');
+%     xlabel('Principal Component');
+%     ylabel('Eigenvalue');
+% 
+%     figure();
+%     plot(x,cumsum(explained));
+%     title('Cumulative Variance by Principal Component');
+%     xlabel('Principal Component');
+%     ylabel('Cumulative Variance (%)');
 
     pcacount = [0 0];
     per10 = sum(latent > (latent(1)/10))
@@ -158,10 +163,11 @@ for freq_threshold = 2:2:20
     per90 = sum(e<90)
     pcacount(1,2) = per90;
     
-    results(freq_threshold/2, :) = [ size(X,1) (sum(latent > (latent(1)/10))) (sum(e<90)) Linear_AUC pcatime];
+    %results(freq_threshold/2, :) = [ size(X,1) (sum(latent >
+    %(latent(1)/10))) (sum(e<90)) Linear_AUC pcatime];  change for 10 runs
     
     %%
-    for c = pcacount
+    for c = pcacount(1)  %change for 10 runs
         X_PCA = (coeff(:,1:c))'; 
         
         aucTotal = 0;    
@@ -178,8 +184,8 @@ for freq_threshold = 2:2:20
             aucTotal = aucTotal + auc;
 
         end
-        Linear_AUC = aucTotal/k
-        toc
+        pcaLinear_AUC = aucTotal/k;
+        linearpcatime = toc;
           
         errTreeTotal = 0;
         tic
@@ -202,19 +208,22 @@ for freq_threshold = 2:2:20
             errTreeTotal = errTreeTotal + errTree;
 
         end
-        Decision_Tree_Error = errTreeTotal/k
-        toc
+        pcaDecision_Tree_Error = errTreeTotal/k;
+        dtpcatime = toc;
+        
+        results2(run, :) = [  Linear_AUC lineartime Decision_Tree_Error dttime size(X,1) (sum(latent > (latent(1)/10))) pcatime pcaLinear_AUC linearpcatime pcaDecision_Tree_Error dtpcatime];  %change for 10 runs
     end
 end
 
+end
 %% PCA Runtime Analysis
 
-    figure();
-    plot(results(:,1),results(:,5));
-    t = (results(:,1).^2*6439 + results(:,1).^3)*3*10^-10;
-    hold on;
-    plot(results(:,1),t);
-    title('PCA Runtime');
-    xlabel('Dataset Dimensionality');
-    ylabel('PCA Runtime (s)');
-    legend('Mean Runtime','Theoretical Runtime');
+%     figure();
+%     plot(results(:,1),results(:,5));
+%     t = (results(:,1).^2*6439 + results(:,1).^3)*3*10^-10;
+%     hold on;
+%     plot(results(:,1),t);
+%     title('PCA Runtime');
+%     xlabel('Dataset Dimensionality');
+%     ylabel('PCA Runtime (s)');
+%     legend('Mean Runtime','Theoretical Runtime');

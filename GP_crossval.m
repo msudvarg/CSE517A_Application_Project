@@ -14,8 +14,8 @@
 function [meanNLPD,stdNLPD,PredMean,PredStd,hyp] = GP_crossval(x,y,covfunc,seed)
 
 %Ensures using same random sequence
-rng(seed);   
-idx=randperm(length(y));
+s = RandStream('mt19937ar','Seed',seed); 
+idx=randperm(s,length(y));
 
 %Shuffling data
 y=y(idx);
