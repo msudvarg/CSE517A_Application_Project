@@ -16,9 +16,9 @@ X_transformed=score(:,1:5);
 covfunc= @covSEiso; 
 
 seed=2018; 
-
-[meanNLPD_SEL,stdNLPLD_SEL,AccMean_SEL,AccStd_SEL,hyp_SEL]=  GP_crossval(X_GP,Y',covfunc,seed); 
-
+tic
+[meanNLPD_SEL,stdNLPLD_SEL,AccMean_SEL,AccStd_SEL,hyp_SEL]=  GP_crossval(X_transformed,Y',covfunc,seed); 
+toc
 
 
 %% Matern Kernel with 3/2 degrees of freedom 
